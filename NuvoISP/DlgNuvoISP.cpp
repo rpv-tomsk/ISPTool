@@ -203,7 +203,7 @@ void CNuvoISPDlg::OnButtonBinFile(int idx, TCHAR *szPath)
     // Open file dialog
     CFileDialog dialog(TRUE, NULL, NULL,
                        OFN_EXPLORER | OFN_ENABLESIZING | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY,
-                       _T("Binary Files (*.bin)|*.bin|All Files|*.*||"),
+                       _T("Binary and Intel Hex Files (*.bin,*.hex)|*.bin; *.hex|All Files|*.*||"),
                        this);
 
     if (szPath != NULL) {
@@ -218,8 +218,6 @@ void CNuvoISPDlg::OnButtonBinFile(int idx, TCHAR *szPath)
     }
 
     if (FileName != _T("")) {
-        int sz = getFilesize(FileName.GetBuffer(0));
-
         if (UpdateFileInfo(FileName, &(m_sFileInfo[idx]))) {
             // File Path
             SetDlgItemText(m_CtrlID[idx].path, FileName);
@@ -227,15 +225,16 @@ void CNuvoISPDlg::OnButtonBinFile(int idx, TCHAR *szPath)
             // Size & Check Sum Info
             if (m_CtrlID[idx].sizecksum) {
                 CString str, strInfo;
+                int sz = m_sFileInfo[idx].st_size;
 
                 if (sz >= 1024 * 1024 * 10)
-                    str.Format(_T("size: %.1fM Bytes"),
+                    str.Format(_T("Data size: %.1fM Bytes"),
                                (float)(sz / 1024.0 / 1024.0));
                 else if (sz >= 1024 * 10)
-                    str.Format(_T("size: %.1fK Bytes"),
+                    str.Format(_T("Data size: %.1fK Bytes"),
                                (float)(sz / 1024.0));
                 else
-                    str.Format(_T("size: %d Bytes"),
+                    str.Format(_T("Data size: %d Bytes"),
                                sz);
 
                 strInfo.Format(_T("%s, checksum: %04x"), str, m_sFileInfo[idx].usCheckSum);
@@ -435,7 +434,7 @@ LRESULT CNuvoISPDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
                             break;
                     }
 
-                    m_ButtonConnect.SetWindowText(_T("Disconnected"));
+                    m_ButtonConnect.SetWindowText(_T("Disconnect"));
                     break;
 
                 default:
