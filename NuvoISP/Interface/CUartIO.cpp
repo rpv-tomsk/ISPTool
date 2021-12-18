@@ -128,8 +128,21 @@ BOOL CUartIO::WriteFile(const char *pcBuffer, DWORD szLen, DWORD *pdwLength, DWO
 
     if (::WriteFile(m_hCOMHandle, pcBuffer, szLen, NULL, &overlapped) == FALSE) {
         if (GetLastError() == ERROR_IO_PENDING) {
-            GetOverlappedResult(m_hCOMHandle, &overlapped, &dwLength, TRUE);
+            DWORD dwIndex = WaitForMultipleObjects(1, &overlapped.hEvent, FALSE, dwMilliseconds);
+
+            if (dwIndex != WAIT_OBJECT_0) {
+                CloseHandle(overlapped.hEvent);
+                return FALSE;
+            }
+            ResetEvent(overlapped.hEvent);
         }
+    }
+
+    //Write OK
+    GetOverlappedResult(m_hCOMHandle, &overlapped, &dwLength, TRUE);
+
+    if (pdwLength != NULL) {
+        *pdwLength = dwLength;
     }
 
     CloseHandle(overlapped.hEvent);
